@@ -26,6 +26,10 @@
  * Defines that depend on advanced configuration.
  */
 
+#ifndef AXIS_RELATIVE_MODES
+  #define AXIS_RELATIVE_MODES {}
+#endif
+
 #ifdef SWITCHING_NOZZLE_E1_SERVO_NR
   #define SWITCHING_NOZZLE_TWO_SERVOS 1
 #endif
@@ -120,6 +124,31 @@
 #if TEMP_SENSOR_COOLER == 0
   #undef THERMAL_PROTECTION_COOLER
 #endif
+
+// Usurp a sensor to do redundant readings
+#if TEMP_SENSOR_REDUNDANT
+  #define _HEATER_ID(M) HID_##M
+  #define HEATER_ID(M)  _HEATER_ID(M)
+  #define REDUNDANT_TEMP_MATCH(M,N) (HEATER_ID(TEMP_SENSOR_REDUNDANT_##M) == _HEATER_ID(N))
+#else
+  #define REDUNDANT_TEMP_MATCH(...) 0
+#endif
+
+// Temperature sensor IDs
+#define HID_REDUNDANT -6
+#define HID_COOLER    -5
+#define HID_PROBE     -4
+#define HID_BOARD     -3
+#define HID_CHAMBER   -2
+#define HID_BED       -1
+#define HID_E0         0
+#define HID_E1         1
+#define HID_E2         2
+#define HID_E3         3
+#define HID_E4         4
+#define HID_E5         5
+#define HID_E6         6
+#define HID_E7         7
 
 #if ENABLED(MIXING_EXTRUDER) && (ENABLED(RETRACT_SYNC_MIXING) || BOTH(FILAMENT_LOAD_UNLOAD_GCODES, FILAMENT_UNLOAD_ALL_EXTRUDERS))
   #define HAS_MIXER_SYNC_CHANNEL 1
@@ -488,12 +517,26 @@
 // Remove unused STEALTHCHOP flags
 #if LINEAR_AXES < 6
   #undef STEALTHCHOP_K
+  #undef CALIBRATION_MEASURE_KMIN
+  #undef CALIBRATION_MEASURE_KMAX
   #if LINEAR_AXES < 5
     #undef STEALTHCHOP_J
+    #undef CALIBRATION_MEASURE_JMIN
+    #undef CALIBRATION_MEASURE_JMAX
     #if LINEAR_AXES < 4
       #undef STEALTHCHOP_I
+      #undef CALIBRATION_MEASURE_IMIN
+      #undef CALIBRATION_MEASURE_IMAX
       #if LINEAR_AXES < 3
+        #undef Z_IDLE_HEIGHT
         #undef STEALTHCHOP_Z
+        #undef Z_PROBE_SLED
+        #undef Z_SAFE_HOMING
+        #undef HOME_Z_FIRST
+        #undef HOMING_Z_WITH_PROBE
+        #undef ENABLE_LEVELING_FADE_HEIGHT
+        #undef NUM_Z_STEPPER_DRIVERS
+        #undef CNC_WORKSPACE_PLANES
         #if LINEAR_AXES < 2
           #undef STEALTHCHOP_Y
         #endif
