@@ -59,7 +59,7 @@
 //
 // Limit Switches
 //
-#define X_DIAG_PIN                          PD15
+#define X_DIAG_PIN                          PA15
 #define Y_DIAG_PIN                          PD2
 #define Z_DIAG_PIN                          PC8
 #define E0_DIAG_PIN                         PC4
@@ -180,8 +180,7 @@
 //
 #define MT_DET_1_PIN                        PA4
 #define MT_DET_2_PIN                        PE6
-#define PW_DET                              PA13
-#define PW_OFF                              PB2
+#define MT_DET_PIN_INVERTING               false  // LVGL UI filament RUNOUT PIN STATE
 
 #ifndef FIL_RUNOUT_PIN
   #define FIL_RUNOUT_PIN            MT_DET_1_PIN
@@ -191,9 +190,9 @@
 #endif
 
 #ifndef POWER_LOSS_PIN
-  #define POWER_LOSS_PIN                  PW_DET
+  #define POWER_LOSS_PIN                    PA13  // PW_DET
 #endif
-#define PS_ON_PIN                         PW_OFF
+#define PS_ON_PIN                           PB2   // PW_OFF
 
 //
 // Enable MKSPWC support
@@ -221,10 +220,16 @@
   #define WIFI_RESET_PIN                    PE9   // MKS ESP WIFI RESET PIN
 #endif
 
+// MKS TEST
+#if ENABLED(MKS_TEST)
+  #define MKS_TEST_POWER_LOSS_PIN           PA13   // PW_DET
+  #define MKS_TEST_PS_ON_PIN                PB2    // PW_OFF
+#endif
+
 //
 // Onboard SD card
 //
-// detect pin dont work when ONBOARD and NO_SD_HOST_DRIVE disabled
+// detect pin doesn't work when ONBOARD and NO_SD_HOST_DRIVE disabled
 #if SD_CONNECTION_IS(ONBOARD)
   #define ENABLE_SPI3
   #define SD_SS_PIN                         -1
@@ -360,6 +365,7 @@
     #if SD_CONNECTION_IS(ONBOARD)
       #define FORCE_SOFT_SPI
     #endif
+	//#define LCD_SCREEN_ROT_180
 
   #else // !MKS_MINI_12864
 
