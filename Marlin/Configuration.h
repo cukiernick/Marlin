@@ -646,8 +646,6 @@
   //#define DEFAULT_bedKi .023
   //#define DEFAULT_bedKd 305.4
 
-
-
   // SapphirePro 500W Keenovo SSR
   #define DEFAULT_bedKp 95
   #define DEFAULT_bedKi 0.7
@@ -879,7 +877,7 @@
 
 // Enable this feature if all enabled endstop pins are interrupt-capable.
 // This will remove the need to poll the interrupt pins, saving many CPU cycles.
-//#define ENDSTOP_INTERRUPTS_FEATURE
+#define ENDSTOP_INTERRUPTS_FEATURE
 
 /**
  * Endstop Noise Threshold
