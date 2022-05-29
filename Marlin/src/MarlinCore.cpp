@@ -74,7 +74,7 @@
   #include "lcd/e3v2/common/encoder.h"
   #if ENABLED(DWIN_CREALITY_LCD)
     #include "lcd/e3v2/creality/dwin.h"
-  #elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
+  #elif ENABLED(DWIN_LCD_PROUI)
     #include "lcd/e3v2/proui/dwin.h"
   #elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
     #include "lcd/e3v2/jyersui/dwin.h"
@@ -97,7 +97,7 @@
   #include "feature/host_actions.h"
 #endif
 
-#if USE_BEEPER
+#if HAS_BEEPER
   #include "libs/buzzer.h"
 #endif
 
@@ -271,6 +271,7 @@ bool wait_for_heatup = true;
     while (wait_for_user && !(ms && ELAPSED(millis(), ms)))
       idle(TERN_(ADVANCED_PAUSE_FEATURE, no_sleep));
     wait_for_user = false;
+    while (ui.button_pressed()) safe_delay(50);
   }
 
 #endif
@@ -319,6 +320,10 @@ bool pin_is_protected(const pin_t pin) {
 }
 
 #pragma GCC diagnostic pop
+
+bool printer_busy() {
+  return planner.movesplanned() || printingIsActive();
+}
 
 /**
  * A Print Job exists when the timer is running or SD is printing
@@ -412,7 +417,9 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
   if (do_reset_timeout) gcode.reset_stepper_timeout(ms);
 
   if (gcode.stepper_max_timed_out(ms)) {
-    SERIAL_ERROR_MSG(STR_KILL_INACTIVE_TIME, parser.command_ptr);
+    SERIAL_ERROR_START();
+    SERIAL_ECHOPGM(STR_KILL_PRE);
+    SERIAL_ECHOLNPGM(STR_KILL_INACTIVE_TIME, parser.command_ptr);
     kill();
   }
 
@@ -436,9 +443,12 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
         TERN_(DISABLE_INACTIVE_I, stepper.disable_axis(I_AXIS));
         TERN_(DISABLE_INACTIVE_J, stepper.disable_axis(J_AXIS));
         TERN_(DISABLE_INACTIVE_K, stepper.disable_axis(K_AXIS));
+        TERN_(DISABLE_INACTIVE_U, stepper.disable_axis(U_AXIS));
+        TERN_(DISABLE_INACTIVE_V, stepper.disable_axis(V_AXIS));
+        TERN_(DISABLE_INACTIVE_W, stepper.disable_axis(W_AXIS));
         TERN_(DISABLE_INACTIVE_E, stepper.disable_e_steppers());
 
-        TERN_(AUTO_BED_LEVELING_UBL, ubl.steppers_were_disabled());
+        TERN_(AUTO_BED_LEVELING_UBL, bedlevel.steppers_were_disabled());
       }
     }
     else
@@ -470,13 +480,15 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
     // KILL the machine
     // ----------------------------------------------------------------
     if (killCount >= KILL_DELAY) {
-      SERIAL_ERROR_MSG(STR_KILL_BUTTON);
+      SERIAL_ERROR_START();
+      SERIAL_ECHOPGM(STR_KILL_PRE);
+      SERIAL_ECHOLNPGM(STR_KILL_BUTTON);
       kill();
     }
   #endif
 
   #if HAS_FREEZE_PIN
-    Stepper::frozen = !READ(FREEZE_PIN);
+    stepper.frozen = READ(FREEZE_PIN) == FREEZE_STATE;
   #endif
 
   #if HAS_HOME
@@ -819,10 +831,10 @@ void idle(bool no_stepper_sleep/*=false*/) {
   TERN_(PRINTCOUNTER, print_job_timer.tick());
 
   // Update the Beeper queue
-  TERN_(USE_BEEPER, buzzer.tick());
+  TERN_(HAS_BEEPER, buzzer.tick());
 
   // Handle UI input / draw events
-  TERN(HAS_DWIN_E3V2_BASIC, DWIN_Update(), ui.update());
+  TERN(DWIN_CREALITY_LCD, DWIN_Update(), ui.update());
 
   // Run i2c Position Encoders
   #if ENABLED(I2C_POSITION_ENCODERS)
@@ -878,7 +890,7 @@ void kill(FSTR_P const lcd_error/*=nullptr*/, FSTR_P const lcd_component/*=nullp
   // Echo the LCD message to serial for extra context
   if (lcd_error) { SERIAL_ECHO_START(); SERIAL_ECHOLNF(lcd_error); }
 
-  #if EITHER(HAS_DISPLAY, DWIN_CREALITY_LCD_ENHANCED)
+  #if HAS_DISPLAY
     ui.kill_screen(lcd_error ?: GET_TEXT_F(MSG_KILLED), lcd_component ?: FPSTR(NUL_STR));
   #else
     UNUSED(lcd_error); UNUSED(lcd_component);
@@ -922,18 +934,18 @@ void minkill(const bool steppers_off/*=false*/) {
 
     // Wait for both KILL and ENC to be released
     while (TERN0(HAS_KILL, kill_state()) || TERN0(SOFT_RESET_ON_KILL, ui.button_pressed()))
-      watchdog_refresh();
+      hal.watchdog_refresh();
 
     // Wait for either KILL or ENC to be pressed again
     while (TERN1(HAS_KILL, !kill_state()) && TERN1(SOFT_RESET_ON_KILL, !ui.button_pressed()))
-      watchdog_refresh();
+      hal.watchdog_refresh();
 
     // Reboot the board
     hal.reboot();
 
   #else
 
-    for (;;) watchdog_refresh();  // Wait for RESET button or power-cycle
+    for (;;) hal.watchdog_refresh();  // Wait for RESET button or power-cycle
 
   #endif
 }
@@ -992,6 +1004,15 @@ inline void tmc_standby_setup() {
   #endif
   #if PIN_EXISTS(K_STDBY)
     SET_INPUT_PULLDOWN(K_STDBY_PIN);
+  #endif
+  #if PIN_EXISTS(U_STDBY)
+    SET_INPUT_PULLDOWN(U_STDBY_PIN);
+  #endif
+  #if PIN_EXISTS(V_STDBY)
+    SET_INPUT_PULLDOWN(V_STDBY_PIN);
+  #endif
+  #if PIN_EXISTS(W_STDBY)
+    SET_INPUT_PULLDOWN(W_STDBY_PIN);
   #endif
   #if PIN_EXISTS(E0_STDBY)
     SET_INPUT_PULLDOWN(E0_STDBY_PIN);
@@ -1166,9 +1187,13 @@ void setup() {
     #endif
   #endif
 
-  #if HAS_FREEZE_PIN
+  #if ENABLED(FREEZE_FEATURE)
     SETUP_LOG("FREEZE_PIN");
-    SET_INPUT_PULLUP(FREEZE_PIN);
+    #if FREEZE_STATE
+      SET_INPUT_PULLDOWN(FREEZE_PIN);
+    #else
+      SET_INPUT_PULLUP(FREEZE_PIN);
+    #endif
   #endif
 
   #if HAS_SUICIDE
@@ -1266,7 +1291,7 @@ void setup() {
   calibrate_delay_loop();
 
   // Init buzzer pin(s)
-  #if USE_BEEPER
+  #if HAS_BEEPER
     SETUP_RUN(buzzer.init());
   #endif
 
@@ -1536,7 +1561,7 @@ void setup() {
   #endif
 
   #if ENABLED(USE_WATCHDOG)
-    SETUP_RUN(watchdog_init());       // Reinit watchdog after hal.get_reset_source call
+    SETUP_RUN(hal.watchdog_init());   // Reinit watchdog after hal.get_reset_source call
   #endif
 
   #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
@@ -1550,10 +1575,6 @@ void setup() {
 
   #if ENABLED(HOST_PROMPT_SUPPORT)
     SETUP_RUN(hostui.prompt_end());
-  #endif
-
-  #if HAS_TRINAMIC_CONFIG && DISABLED(PSU_DEFAULT_OFF)
-    SETUP_RUN(test_tmc_connection());
   #endif
 
   #if HAS_DRIVER_SAFE_POWER_PROTECT
@@ -1571,11 +1592,7 @@ void setup() {
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
-    SETUP_LOG("E3V2 Init");
-    Encoder_Configuration();
-    HMI_Init();
-    HMI_SetLanguageCache();
-    HMI_StartFrame(true);
+    SETUP_RUN(DWIN_InitScreen());
   #endif
 
   #if HAS_SERVICE_INTERVALS && !HAS_DWIN_E3V2_BASIC
@@ -1615,6 +1632,10 @@ void setup() {
 
   #if ENABLED(EASYTHREED_UI)
     SETUP_RUN(easythreed_ui.init());
+  #endif
+
+  #if HAS_TRINAMIC_CONFIG && DISABLED(PSU_DEFAULT_OFF)
+    SETUP_RUN(test_tmc_connection());
   #endif
 
   marlin_state = MF_RUNNING;

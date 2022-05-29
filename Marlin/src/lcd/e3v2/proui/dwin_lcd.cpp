@@ -21,17 +21,15 @@
  */
 
 /**
- * DWIN UI Enhanced implementation
+ * DWIN Enhanced implementation for PRO UI
  * Author: Miguel A. Risco-Castillo (MRISCOC)
- * Version: 3.8.1
- * Date: 2021/11/09
- *
- * Based on the original code provided by Creality under GPL
+ * Version: 3.10.1
+ * Date: 2022/03/06
  */
 
 #include "../../../inc/MarlinConfigPre.h"
 
-#if ENABLED(DWIN_CREALITY_LCD_ENHANCED)
+#if ENABLED(DWIN_LCD_PROUI)
 
 #include "../../../inc/MarlinConfig.h"
 
@@ -159,4 +157,4 @@ void DWIN_SRAMToPic(uint8_t picID) {
 //  DWIN_Send(i);
 //}
 
-#endif // DWIN_CREALITY_LCD_ENHANCED
+#endif // DWIN_LCD_PROUI
