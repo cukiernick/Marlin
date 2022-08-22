@@ -461,7 +461,7 @@
   #define HAS_DGUS_LCD_CLASSIC 1
 #endif
 
-#if ANY(HAS_DGUS_LCD_CLASSIC, DGUS_LCD_UI_RELOADED)
+#if EITHER(HAS_DGUS_LCD_CLASSIC, DGUS_LCD_UI_RELOADED)
   #define HAS_DGUS_LCD 1
 #endif
 
@@ -513,7 +513,7 @@
   #define HAS_LCDPRINT 1
 #endif
 
-#if ANY(HAS_DISPLAY, HAS_DWIN_E3V2)
+#if HAS_DISPLAY || HAS_DWIN_E3V2
   #define HAS_STATUS_MESSAGE 1
 #endif
 
@@ -666,21 +666,15 @@
 #endif
 
 /**
- * Number of Linear Axes (e.g., XYZIJKUVW)
+ * Number of Linear Axes (e.g., XYZIJK)
  * All the logical axes except for the tool (E) axis
  */
-#ifdef NUM_AXES
-  #undef NUM_AXES
-  #define NUM_AXES_WARNING 1
+#ifdef LINEAR_AXES
+  #undef LINEAR_AXES
+  #define LINEAR_AXES_WARNING 1
 #endif
 
-#ifdef W_DRIVER_TYPE
-  #define NUM_AXES 9
-#elif defined(V_DRIVER_TYPE)
-  #define NUM_AXES 8
-#elif defined(U_DRIVER_TYPE)
-  #define NUM_AXES 7
-#elif defined(K_DRIVER_TYPE)
+#ifdef K_DRIVER_TYPE
   #define NUM_AXES 6
 #elif defined(J_DRIVER_TYPE)
   #define NUM_AXES 5
@@ -712,15 +706,6 @@
         #define HAS_J_AXIS 1
         #if NUM_AXES >= 6
           #define HAS_K_AXIS 1
-          #if NUM_AXES >= 7
-            #define HAS_U_AXIS 1
-            #if NUM_AXES >= 8
-              #define HAS_V_AXIS 1
-              #if NUM_AXES >= 9
-                #define HAS_W_AXIS 1
-              #endif
-            #endif
-          #endif
         #endif
       #endif
     #endif
@@ -826,48 +811,6 @@
   #undef MANUAL_K_HOME_POS
 #endif
 
-#if !HAS_U_AXIS
-  #undef ENDSTOPPULLUP_UMIN
-  #undef ENDSTOPPULLUP_UMAX
-  #undef U_MIN_ENDSTOP_INVERTING
-  #undef U_MAX_ENDSTOP_INVERTING
-  #undef U_ENABLE_ON
-  #undef DISABLE_U
-  #undef INVERT_U_DIR
-  #undef U_HOME_DIR
-  #undef U_MIN_POS
-  #undef U_MAX_POS
-  #undef MANUAL_U_HOME_POS
-#endif
-
-#if !HAS_V_AXIS
-  #undef ENDSTOPPULLUP_VMIN
-  #undef ENDSTOPPULLUP_VMAX
-  #undef V_MIN_ENDSTOP_INVERTING
-  #undef V_MAX_ENDSTOP_INVERTING
-  #undef V_ENABLE_ON
-  #undef DISABLE_V
-  #undef INVERT_V_DIR
-  #undef V_HOME_DIR
-  #undef V_MIN_POS
-  #undef V_MAX_POS
-  #undef MANUAL_V_HOME_POS
-#endif
-
-#if !HAS_W_AXIS
-  #undef ENDSTOPPULLUP_WMIN
-  #undef ENDSTOPPULLUP_WMAX
-  #undef W_MIN_ENDSTOP_INVERTING
-  #undef W_MAX_ENDSTOP_INVERTING
-  #undef W_ENABLE_ON
-  #undef DISABLE_W
-  #undef INVERT_W_DIR
-  #undef W_HOME_DIR
-  #undef W_MIN_POS
-  #undef W_MAX_POS
-  #undef MANUAL_W_HOME_POS
-#endif
-
 #ifdef X2_DRIVER_TYPE
   #define HAS_X2_STEPPER 1
   // Dual X Carriage isn't known yet. TODO: Consider moving it to Configuration.h.
@@ -888,42 +831,14 @@
 #endif
 
 /**
- * Number of Secondary Axes (e.g., IJKUVW)
+ * Number of Secondary Axes (e.g., IJK)
  * All linear/rotational axes between XYZ and E.
  */
 #define SECONDARY_AXES SUB3(NUM_AXES)
 
 /**
- * Number of Rotational Axes (e.g., IJK)
- * All axes for which AXIS*_ROTATES is defined.
- * For these axes, positions are specified in angular degrees.
- */
-#if ENABLED(AXIS9_ROTATES)
-  #define ROTATIONAL_AXES 6
-#elif ENABLED(AXIS8_ROTATES)
-  #define ROTATIONAL_AXES 5
-#elif ENABLED(AXIS7_ROTATES)
-  #define ROTATIONAL_AXES 4
-#elif ENABLED(AXIS6_ROTATES)
-  #define ROTATIONAL_AXES 3
-#elif ENABLED(AXIS5_ROTATES)
-  #define ROTATIONAL_AXES 2
-#elif ENABLED(AXIS4_ROTATES)
-  #define ROTATIONAL_AXES 1
-#else
-  #define ROTATIONAL_AXES 0
-#endif
-
-/**
- * Number of Secondary Linear Axes (e.g., UVW)
- * All secondary axes for which AXIS*_ROTATES is not defined.
- * Excluding primary axes and excluding duplicate axes (X2, Y2, Z2, Z3, Z4)
- */
-#define SECONDARY_LINEAR_AXES (NUM_AXES - PRIMARY_LINEAR_AXES - ROTATIONAL_AXES)
-
-/**
- * Number of Logical Axes (e.g., XYZIJKUVWE)
- * All logical axes that can be commanded directly by G-code.
+ * Number of Logical Axes (e.g., XYZIJKE)
+ * All the logical axes that can be commanded directly by G-code.
  * Delta maps stepper-specific values to ABC steppers.
  */
 #if HAS_EXTRUDERS
@@ -1046,7 +961,7 @@
 #endif
 
 /**
- * Set a flag for any type of bed probe, including the paper-test
+ * Set flags for any form of bed probe
  */
 #if ANY(HAS_Z_SERVO_PROBE, FIX_MOUNTED_PROBE, NOZZLE_AS_PROBE, TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, SOLENOID_PROBE, SENSORLESS_PROBING, RACK_AND_PINION_PROBE, MAGLEV4)
   #define HAS_BED_PROBE 1
@@ -1177,21 +1092,6 @@
 #elif K_HOME_DIR < 0
   #define K_HOME_TO_MIN 1
 #endif
-#if U_HOME_DIR > 0
-  #define U_HOME_TO_MAX 1
-#elif U_HOME_DIR < 0
-  #define U_HOME_TO_MIN 1
-#endif
-#if V_HOME_DIR > 0
-  #define V_HOME_TO_MAX 1
-#elif V_HOME_DIR < 0
-  #define V_HOME_TO_MIN 1
-#endif
-#if W_HOME_DIR > 0
-  #define W_HOME_TO_MAX 1
-#elif W_HOME_DIR < 0
-  #define W_HOME_TO_MIN 1
-#endif
 
 /**
  * Conditionals based on the type of Bed Probe
@@ -1206,7 +1106,7 @@
   #if NONE(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN, HAS_DELTA_SENSORLESS_PROBING)
     #define USES_Z_MIN_PROBE_PIN 1
   #endif
-  #if Z_HOME_TO_MIN && TERN1(USES_Z_MIN_PROBE_PIN, ENABLED(USE_PROBE_FOR_Z_HOMING))
+  #if Z_HOME_TO_MIN && (DISABLED(USES_Z_MIN_PROBE_PIN) || ENABLED(USE_PROBE_FOR_Z_HOMING))
     #define HOMING_Z_WITH_PROBE 1
   #endif
   #ifndef Z_PROBE_LOW_POINT
@@ -1427,7 +1327,7 @@
   #define TFT_DEFAULT_ORIENTATION 0
   #define TFT_RES_480x272
   #define TFT_INTERFACE_FSMC
-#elif ANY(MKS_ROBIN_TFT_V1_1R, LONGER_LK_TFT28)                               // ILI9328 or R61505
+#elif EITHER(MKS_ROBIN_TFT_V1_1R, LONGER_LK_TFT28)                            // ILI9328 or R61505
   #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_X | TFT_INVERT_Y)
   #define TFT_RES_320x240
   #define TFT_INTERFACE_FSMC
@@ -1463,7 +1363,13 @@
 #elif ENABLED(TFT_RES_1024x600)
   #define TFT_WIDTH  1024
   #define TFT_HEIGHT 600
-  #define GRAPHICAL_TFT_UPSCALE 4
+  #if ENABLED(TOUCH_SCREEN)
+    #define GRAPHICAL_TFT_UPSCALE 6
+    #define TFT_PIXEL_OFFSET_X 120
+  #else
+    #define GRAPHICAL_TFT_UPSCALE 8
+    #define TFT_PIXEL_OFFSET_X 0
+  #endif
 #endif
 
 // FSMC/SPI TFT Panels using standard HAL/tft/tft_(fsmc|spi|ltdc).h

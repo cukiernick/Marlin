@@ -45,12 +45,6 @@ enum EndstopEnum : char {
   _ES_ITEM(HAS_J_MAX, J_MAX)
   _ES_ITEM(HAS_K_MIN, K_MIN)
   _ES_ITEM(HAS_K_MAX, K_MAX)
-  _ES_ITEM(HAS_U_MIN, U_MIN)
-  _ES_ITEM(HAS_U_MAX, U_MAX)
-  _ES_ITEM(HAS_V_MIN, V_MIN)
-  _ES_ITEM(HAS_V_MAX, V_MAX)
-  _ES_ITEM(HAS_W_MIN, W_MIN)
-  _ES_ITEM(HAS_W_MAX, W_MAX)
 
   // Extra Endstops for XYZ
   #if ENABLED(X_DUAL_ENDSTOPS)
@@ -246,6 +240,11 @@ class Endstops {
       static tmc_spi_homing_t tmc_spi_homing;
       static void clear_endstop_state();
       static bool tmc_spi_homing_check();
+    #endif
+  public:
+    // Basic functions for Sensorless Homing
+    #if USE_SENSORLESS
+      static void set_homing_current(const bool onoff);
     #endif
 };
 

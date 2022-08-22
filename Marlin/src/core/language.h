@@ -227,10 +227,6 @@
 #define STR_PID_DEBUG                       " PID_DEBUG "
 #define STR_PID_DEBUG_INPUT                 ": Input "
 #define STR_PID_DEBUG_OUTPUT                " Output "
-#define STR_PID_DEBUG_PTERM                 " pTerm "
-#define STR_PID_DEBUG_ITERM                 " iTerm "
-#define STR_PID_DEBUG_DTERM                 " dTerm "
-#define STR_PID_DEBUG_CTERM                 " cTerm "
 #define STR_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 #define STR_MPC_AUTOTUNE                    "MPC Autotune"
 #define STR_MPC_AUTOTUNE_START              " start for " STR_E
@@ -455,54 +451,6 @@
   #endif
 #else
   #define STR_K   ""
-#endif
-
-#if HAS_U_AXIS
-  #if AXIS7_NAME == 'U'
-    #define STR_U "U"
-    #define STR_U_MIN "u_min"
-    #define STR_U_MAX "u_max"
-  #elif AXIS7_NAME == 'V'
-    #define STR_U "V"
-    #define STR_U_MIN "v_min"
-    #define STR_U_MAX "v_max"
-  #elif AXIS7_NAME == 'W'
-    #define STR_U "W"
-    #define STR_U_MIN "w_min"
-    #define STR_U_MAX "w_max"
-  #else
-    #error "AXIS7_NAME can only be one of 'U', 'V', or 'W'."
-  #endif
-#else
-  #define STR_U   ""
-#endif
-
-#if HAS_V_AXIS
-  #if AXIS8_NAME == 'V'
-    #define STR_V "V"
-    #define STR_V_MIN "v_min"
-    #define STR_V_MAX "v_max"
-  #elif AXIS8_NAME == 'W'
-    #define STR_V "W"
-    #define STR_V_MIN "w_min"
-    #define STR_V_MAX "w_max"
-  #else
-    #error "AXIS8_NAME can only be one of 'V', or 'W'."
-  #endif
-#else
-  #define STR_V   ""
-#endif
-
-#if HAS_W_AXIS
-  #if AXIS9_NAME == 'W'
-    #define STR_W "W"
-    #define STR_W_MIN "w_min"
-    #define STR_W_MAX "w_max"
-  #else
-    #error "AXIS9_NAME can only be 'W'."
-  #endif
-#else
-  #define STR_W   ""
 #endif
 
 #if EITHER(HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL)

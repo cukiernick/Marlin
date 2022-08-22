@@ -31,7 +31,7 @@
 #include "../../module/temperature.h"
 #include "../../gcode/queue.h"
 
-#if HAS_BUZZER
+#if HAS_SOUND
   #include "../../libs/buzzer.h"
 #endif
 
@@ -47,7 +47,7 @@
 ///////////// Global Variables /////////////
 ////////////////////////////////////////////
 
-#if HAS_LEVELING && ANY(LEVEL_BED_CORNERS, PROBE_OFFSET_WIZARD, X_AXIS_TWIST_COMPENSATION)
+#if HAS_LEVELING && ANY(LCD_BED_TRAMMING, PROBE_OFFSET_WIZARD, X_AXIS_TWIST_COMPENSATION)
   bool leveling_was_active; // = false
 #endif
 #if ANY(PROBE_MANUALLY, MESH_BED_LEVELING, X_AXIS_TWIST_COMPENSATION)
@@ -68,9 +68,10 @@ typedef struct {
 menuPosition screen_history[6];
 uint8_t screen_history_depth = 0;
 
-int8_t MenuItemBase::itemIndex;   // Index number for draw and action
-FSTR_P MenuItemBase::itemString;  // A string for substitution
-chimera_t editable;               // Value Editing
+int8_t MenuItemBase::itemIndex;         // Index number for draw and action
+FSTR_P MenuItemBase::itemStringF;       // A string for substitution
+const char *MenuItemBase::itemStringC;
+chimera_t editable;                     // Value Editing
 
 // Menu Edit Items
 FSTR_P       MenuEditItemBase::editLabel;
@@ -190,7 +191,7 @@ void MarlinUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, co
         else {
           #if ENABLED(MOVE_Z_WHEN_IDLE)
             ui.manual_move.menu_scale = MOVE_Z_IDLE_MULTIPLICATOR;
-            screen = lcd_move_z;
+            screen = []{ lcd_move_axis(Z_AXIS); };
           #endif
         }
       }
@@ -271,7 +272,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     encoderTopLine = encoderLine;
 }
 
-#if HAS_BUZZER
+#if HAS_SOUND
   void MarlinUI::completion_feedback(const bool good/*=true*/) {
     TERN_(HAS_TOUCH_SLEEP, wakeup_screen()); // Wake up on rotary encoder click...
     if (good) OKAY_BUZZ(); else ERR_BUZZ();

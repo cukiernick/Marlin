@@ -39,36 +39,24 @@
 #define _ISTOP_  0x04
 #define _JSTOP_  0x05
 #define _KSTOP_  0x06
-#define _USTOP_  0x07
-#define _VSTOP_  0x08
-#define _WSTOP_  0x09
 #define _XMIN_   0x11
 #define _YMIN_   0x12
 #define _ZMIN_   0x13
 #define _IMIN_   0x14
 #define _JMIN_   0x15
 #define _KMIN_   0x16
-#define _UMIN_   0x17
-#define _VMIN_   0x18
-#define _WMIN_   0x19
 #define _XMAX_   0x21
 #define _YMAX_   0x22
 #define _ZMAX_   0x23
 #define _IMAX_   0x24
 #define _JMAX_   0x25
 #define _KMAX_   0x26
-#define _UMAX_   0x27
-#define _VMAX_   0x28
-#define _WMAX_   0x29
 #define _XDIAG_  0x31
 #define _YDIAG_  0x32
 #define _ZDIAG_  0x33
 #define _IDIAG_  0x34
 #define _JDIAG_  0x35
 #define _KDIAG_  0x36
-#define _UDIAG_  0x37
-#define _VDIAG_  0x38
-#define _WDIAG_  0x39
 #define _E0DIAG_ 0xE0
 #define _E1DIAG_ 0xE1
 #define _E2DIAG_ 0xE2
@@ -644,8 +632,8 @@
 #define IS_PROBE(V...) SECOND(V, 0)     // Get the second item passed, or 0
 #define PROBE() ~, 1                    // Second item will be 1 if this is passed
 #define _NOT_0 PROBE()
-#define NOT(x) IS_PROBE(_CAT(_NOT_, x)) // NOT('0') gets '1'. Anything else gets '0'.
-#define _BOOL(x) NOT(NOT(x))            // NOT('0') gets '0'. Anything else gets '1'.
+#define NOT(x) IS_PROBE(_CAT(_NOT_, x)) //   NOT('0') gets '1'. Anything else gets '0'.
+#define _BOOL(x) NOT(NOT(x))            // _BOOL('0') gets '0'. Anything else gets '1'.
 
 #define IF_ELSE(TF) _IF_ELSE(_BOOL(TF))
 #define _IF_ELSE(TF) _CAT(_IF_, TF)
@@ -658,7 +646,6 @@
 
 #define HAS_ARGS(V...) _BOOL(FIRST(_END_OF_ARGUMENTS_ V)())
 #define _END_OF_ARGUMENTS_() 0
-
 
 // Simple Inline IF Macros, friendly to use in other macro definitions
 #define IF(O, A, B) ((O) ? (A) : (B))

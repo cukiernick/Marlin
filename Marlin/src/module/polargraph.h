@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -22,6 +22,20 @@
 #pragma once
 
 /**
+<<<<<<<< HEAD:Marlin/src/pins/stm32f1/pins_CREALITY_V24S1.h
+ * Creality v2.4.S1 (STM32F103RE / STM32F103RC) v101 as found in the Ender 7
+ */
+
+#define BOARD_INFO_NAME      "Creality v2.4.S1 V101"
+#define DEFAULT_MACHINE_NAME "Creality3D"
+
+//
+// Heaters
+//
+#define HEATER_BED_PIN                      PA15  // HOT BED
+
+#include "pins_CREALITY_V4.h"
+========
  * polargraph.h - Polargraph-specific functions
  */
 
@@ -29,5 +43,9 @@
 #include "../core/macros.h"
 
 extern float segments_per_second;
+extern xy_pos_t draw_area_min, draw_area_max;
+extern xy_float_t draw_area_size;
+extern float polargraph_max_belt_len;
 
 void inverse_kinematics(const xyz_pos_t &raw);
+>>>>>>>> bugfix-2.0.x:Marlin/src/module/polargraph.h

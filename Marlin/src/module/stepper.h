@@ -159,21 +159,12 @@
 #if HAS_K_STEP
   #define ISR_K_STEPPER_CYCLES  ISR_STEPPER_CYCLES
 #endif
-#if HAS_U_STEP
-  #define ISR_U_STEPPER_CYCLES  ISR_STEPPER_CYCLES
-#endif
-#if HAS_V_STEP
-  #define ISR_V_STEPPER_CYCLES  ISR_STEPPER_CYCLES
-#endif
-#if HAS_W_STEP
-  #define ISR_W_STEPPER_CYCLES  ISR_STEPPER_CYCLES
-#endif
 #if HAS_EXTRUDERS
   #define ISR_E_STEPPER_CYCLES  ISR_STEPPER_CYCLES    // E is always interpolated, even for mixing extruders
 #endif
 
 // And the total minimum loop time, not including the base
-#define MIN_ISR_LOOP_CYCLES (ISR_MIXING_STEPPER_CYCLES LOGICAL_AXIS_GANG(+ ISR_E_STEPPER_CYCLES, + ISR_X_STEPPER_CYCLES, + ISR_Y_STEPPER_CYCLES, + ISR_Z_STEPPER_CYCLES, + ISR_I_STEPPER_CYCLES, + ISR_J_STEPPER_CYCLES, + ISR_K_STEPPER_CYCLES, + ISR_U_STEPPER_CYCLES, + ISR_V_STEPPER_CYCLES, + ISR_W_STEPPER_CYCLES))
+#define MIN_ISR_LOOP_CYCLES (ISR_MIXING_STEPPER_CYCLES LOGICAL_AXIS_GANG(+ ISR_E_STEPPER_CYCLES, + ISR_X_STEPPER_CYCLES, + ISR_Y_STEPPER_CYCLES, + ISR_Z_STEPPER_CYCLES, + ISR_I_STEPPER_CYCLES, + ISR_J_STEPPER_CYCLES, + ISR_K_STEPPER_CYCLES))
 
 // Calculate the minimum MPU cycles needed per pulse to enforce, limited to the max stepper rate
 #define _MIN_STEPPER_PULSE_CYCLES(N) _MAX(uint32_t((F_CPU) / (MAXIMUM_STEPPER_RATE)), ((F_CPU) / 500000UL) * (N))
@@ -246,18 +237,14 @@
 #define MIN_STEP_ISR_FREQUENCY (MAX_STEP_ISR_FREQUENCY_1X / 2)
 
 #define ENABLE_COUNT (NUM_AXES + E_STEPPERS)
-#if ENABLE_COUNT > 16
-  typedef uint32_t ena_mask_t;
-#else
-  typedef IF<(ENABLE_COUNT > 8), uint16_t, uint8_t>::type ena_mask_t;
-#endif
+typedef IF<(ENABLE_COUNT > 8), uint16_t, uint8_t>::type ena_mask_t;
 
 // Axis flags type, for enabled state or other simple state
 typedef struct {
   union {
     ena_mask_t bits;
     struct {
-      bool NUM_AXIS_LIST(X:1, Y:1, Z:1, I:1, J:1, K:1, U:1, V:1, W:1);
+      bool NUM_AXIS_LIST(X:1, Y:1, Z:1, I:1, J:1, K:1);
       #if HAS_EXTRUDERS
         bool LIST_N(EXTRUDERS, E0:1, E1:1, E2:1, E3:1, E4:1, E5:1, E6:1, E7:1);
       #endif
@@ -267,7 +254,7 @@ typedef struct {
 
 // All the stepper enable pins
 constexpr pin_t ena_pins[] = {
-  NUM_AXIS_LIST(X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN, I_ENABLE_PIN, J_ENABLE_PIN, K_ENABLE_PIN, U_ENABLE_PIN, V_ENABLE_PIN, W_ENABLE_PIN),
+  NUM_AXIS_LIST(X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN, I_ENABLE_PIN, J_ENABLE_PIN, K_ENABLE_PIN),
   LIST_N(E_STEPPERS, E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN, E6_ENABLE_PIN, E7_ENABLE_PIN)
 };
 
@@ -444,25 +431,6 @@ class Stepper {
     // Current stepper motor directions (+1 or -1)
     static xyze_int8_t count_direction;
 
-    #if ENABLED(LASER_POWER_INLINE_TRAPEZOID)
-
-      typedef struct {
-        bool enabled;       // Trapezoid needed flag (i.e., laser on, planner in control)
-        uint8_t cur_power;  // Current laser power
-        bool cruise_set;    // Power set up for cruising?
-
-        #if ENABLED(LASER_POWER_INLINE_TRAPEZOID_CONT)
-          uint16_t till_update;     // Countdown to the next update
-        #else
-          uint32_t last_step_count, // Step count from the last update
-                   acc_step_count;  // Bresenham counter for laser accel/decel
-        #endif
-      } stepper_laser_t;
-
-      static stepper_laser_t laser_trap;
-
-    #endif
-
   public:
     // Initialize stepper hardware
     static void init();
@@ -524,8 +492,7 @@ class Stepper {
     // Discard current block and free any resources
     FORCE_INLINE static void discard_current_block() {
       #if ENABLED(DIRECT_STEPPING)
-        if (IS_PAGE(current_block))
-          page_manager.free_page(current_block->page_idx);
+        if (current_block->is_page()) page_manager.free_page(current_block->page_idx);
       #endif
       current_block = nullptr;
       axis_did_move = 0;

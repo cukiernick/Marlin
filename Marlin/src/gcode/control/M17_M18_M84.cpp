@@ -24,6 +24,7 @@
 #include "../../MarlinCore.h" // for stepper_inactive_time, disable_e_steppers
 #include "../../lcd/marlinui.h"
 #include "../../module/motion.h" // for e_axis_mask
+#include "../../module/planner.h"
 #include "../../module/stepper.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -53,10 +54,7 @@ inline stepper_flags_t selected_axis_bits() {
     | (parser.seen_test('Z')        << Z_AXIS),
     | (parser.seen_test(AXIS4_NAME) << I_AXIS),
     | (parser.seen_test(AXIS5_NAME) << J_AXIS),
-    | (parser.seen_test(AXIS6_NAME) << K_AXIS),
-    | (parser.seen_test(AXIS7_NAME) << U_AXIS),
-    | (parser.seen_test(AXIS8_NAME) << V_AXIS),
-    | (parser.seen_test(AXIS9_NAME) << W_AXIS)
+    | (parser.seen_test(AXIS6_NAME) << K_AXIS)
   );
   return selected;
 }
@@ -211,7 +209,16 @@ void try_to_disable(const stepper_flags_t to_disable) {
 void GcodeSuite::M18_M84() {
   if (parser.seenval('S')) {
     reset_stepper_timeout();
-    stepper_inactive_time = parser.value_millis_from_seconds();
+    #if HAS_DISABLE_INACTIVE_AXIS
+      const millis_t ms = parser.value_millis_from_seconds();
+      #if LASER_SAFETY_TIMEOUT_MS > 0
+        if (ms && ms <= LASER_SAFETY_TIMEOUT_MS) {
+          SERIAL_ECHO_MSG("M18 timeout must be > ", MS_TO_SEC(LASER_SAFETY_TIMEOUT_MS + 999), " s for laser safety.");
+          return;
+        }
+      #endif
+      stepper_inactive_time = ms;
+    #endif
   }
   else {
     if (parser.seen_axis()) {

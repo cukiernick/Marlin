@@ -21,6 +21,19 @@
  */
 #pragma once
 
+<<<<<<<< HEAD:Marlin/src/module/polargraph.h
+/**
+ * polargraph.h - Polargraph-specific functions
+ */
+
+#include "../core/types.h"
+#include "../core/macros.h"
+
+extern float segments_per_second;
+
+void inverse_kinematics(const xyz_pos_t &raw);
+========
 #include <SPI.h>
 
 using MarlinSPI = SPIClass;
+>>>>>>>> bugfix-2.0.x:Marlin/src/HAL/LINUX/MarlinSPI.h

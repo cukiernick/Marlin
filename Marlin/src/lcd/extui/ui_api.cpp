@@ -169,7 +169,7 @@ namespace ExtUI {
   }
 
   void yield() {
-    if (!flags.printer_killed) thermalManager.manage_heater();
+    if (!flags.printer_killed) thermalManager.task();
   }
 
   void enableHeater(const extruder_t extruder) {
@@ -420,15 +420,6 @@ namespace ExtUI {
         #if AXIS_IS_TMC(K)
           case K: return stepperK.getMilliamps();
         #endif
-        #if AXIS_IS_TMC(U)
-          case U: return stepperU.getMilliamps();
-        #endif
-        #if AXIS_IS_TMC(V)
-          case V: return stepperV.getMilliamps();
-        #endif
-        #if AXIS_IS_TMC(W)
-          case W: return stepperW.getMilliamps();
-        #endif
         #if AXIS_IS_TMC(X2)
           case X2: return stepperX2.getMilliamps();
         #endif
@@ -498,15 +489,6 @@ namespace ExtUI {
         #if AXIS_IS_TMC(K)
           case K: stepperK.rms_current(constrain(mA, 400, 1500)); break;
         #endif
-        #if AXIS_IS_TMC(U)
-          case U: stepperU.rms_current(constrain(mA, 400, 1500)); break;
-        #endif
-        #if AXIS_IS_TMC(V)
-          case V: stepperV.rms_current(constrain(mA, 400, 1500)); break;
-        #endif
-        #if AXIS_IS_TMC(W)
-          case W: stepperW.rms_current(constrain(mA, 400, 1500)); break;
-        #endif
         #if AXIS_IS_TMC(X2)
           case X2: stepperX2.rms_current(constrain(mA, 400, 1500)); break;
         #endif
@@ -564,9 +546,6 @@ namespace ExtUI {
         OPTCODE(I_SENSORLESS,  case I:  return stepperI.homing_threshold())
         OPTCODE(J_SENSORLESS,  case J:  return stepperJ.homing_threshold())
         OPTCODE(K_SENSORLESS,  case K:  return stepperK.homing_threshold())
-        OPTCODE(U_SENSORLESS,  case U:  return stepperU.homing_threshold())
-        OPTCODE(V_SENSORLESS,  case V:  return stepperV.homing_threshold())
-        OPTCODE(W_SENSORLESS,  case W:  return stepperW.homing_threshold())
         OPTCODE(X2_SENSORLESS, case X2: return stepperX2.homing_threshold())
         OPTCODE(Y2_SENSORLESS, case Y2: return stepperY2.homing_threshold())
         OPTCODE(Z2_SENSORLESS, case Z2: return stepperZ2.homing_threshold())
@@ -595,15 +574,6 @@ namespace ExtUI {
         #endif
         #if K_SENSORLESS
           case K: stepperK.homing_threshold(value); break;
-        #endif
-        #if U_SENSORLESS
-          case U: stepperU.homing_threshold(value); break;
-        #endif
-        #if V_SENSORLESS
-          case V: stepperV.homing_threshold(value); break;
-        #endif
-        #if W_SENSORLESS
-          case W: stepperW.homing_threshold(value); break;
         #endif
         #if X2_SENSORLESS
           case X2: stepperX2.homing_threshold(value); break;
@@ -1076,7 +1046,7 @@ namespace ExtUI {
   void coolDown() { thermalManager.cooldown(); }
 
   bool awaitingUserConfirm() {
-    return TERN0(HAS_RESUME_CONTINUE, wait_for_user) || getHostKeepaliveIsPaused();
+    return TERN0(HAS_RESUME_CONTINUE, wait_for_user) || TERN0(HOST_KEEPALIVE_FEATURE, getHostKeepaliveIsPaused());
   }
   void setUserConfirmed() { TERN_(HAS_RESUME_CONTINUE, wait_for_user = false); }
 
@@ -1112,15 +1082,23 @@ namespace ExtUI {
 
   // Simplest approach is to make an SRAM copy
   void onUserConfirmRequired(FSTR_P const fstr) {
-    char msg[strlen_P(FTOP(fstr)) + 1];
-    strcpy_P(msg, FTOP(fstr));
-    onUserConfirmRequired(msg);
+    #ifdef __AVR__
+      char msg[strlen_P(FTOP(fstr)) + 1];
+      strcpy_P(msg, FTOP(fstr));
+      onUserConfirmRequired(msg);
+    #else
+      onUserConfirmRequired(FTOP(fstr));
+    #endif
   }
 
   void onStatusChanged(FSTR_P const fstr) {
-    char msg[strlen_P(FTOP(fstr)) + 1];
-    strcpy_P(msg, FTOP(fstr));
-    onStatusChanged(msg);
+    #ifdef __AVR__
+      char msg[strlen_P(FTOP(fstr)) + 1];
+      strcpy_P(msg, FTOP(fstr));
+      onStatusChanged(msg);
+    #else
+      onStatusChanged(FTOP(fstr));
+    #endif
   }
 
   FileList::FileList() { refresh(); }
