@@ -3220,6 +3220,36 @@
 
   // @section tmc/serial
 
+  #define TMC_BAUD_RATE 19200
+
+  #ifndef X_SERIAL_TX_PIN
+    #define X_SERIAL_TX_PIN  PA6 //E1_STEP_PIN
+  #endif
+  #ifndef X_SERIAL_RX_PIN
+    #define X_SERIAL_RX_PIN  PA1 //E1_DIR_PIN
+  #endif
+
+  #ifndef Y_SERIAL_TX_PIN
+    #define Y_SERIAL_TX_PIN  PA6 //E1_STEP_PIN
+  #endif
+  #ifndef Y_SERIAL_RX_PIN
+    #define Y_SERIAL_RX_PIN  PA1 //E1_DIR_PIN
+  #endif
+
+  #ifndef Z_SERIAL_TX_PIN
+    #define Z_SERIAL_TX_PIN  PA6 //E1_STEP_PIN
+  #endif
+  #ifndef Z_SERIAL_RX_PIN
+    #define Z_SERIAL_RX_PIN  PA1 //E1_DIR_PIN
+  #endif
+
+  #ifndef E0_SERIAL_TX_PIN
+    #define E0_SERIAL_TX_PIN PA6 //E1_STEP_PIN
+  #endif
+  #ifndef E0_SERIAL_RX_PIN
+    #define E0_SERIAL_RX_PIN PA1 //E1_DIR_PIN
+  #endif
+
   /**
    * Four TMC2209 drivers can use the same HW/SW serial port with hardware configured addresses.
    * Set the address using jumpers on pins MS1 and MS2.
@@ -3232,9 +3262,9 @@
    * Set *_SERIAL_TX_PIN and *_SERIAL_RX_PIN to match for all drivers
    * on the same serial port, either here or in your board's pins file.
    */
-  //#define  X_SLAVE_ADDRESS 0
-  //#define  Y_SLAVE_ADDRESS 0
-  //#define  Z_SLAVE_ADDRESS 0
+  #define  X_SLAVE_ADDRESS 0
+  #define  Y_SLAVE_ADDRESS 1
+  #define  Z_SLAVE_ADDRESS 2
   //#define X2_SLAVE_ADDRESS 0
   //#define Y2_SLAVE_ADDRESS 0
   //#define Z2_SLAVE_ADDRESS 0
@@ -3246,7 +3276,7 @@
   //#define  U_SLAVE_ADDRESS 0
   //#define  V_SLAVE_ADDRESS 0
   //#define  W_SLAVE_ADDRESS 0
-  //#define E0_SLAVE_ADDRESS 0
+  #define E0_SLAVE_ADDRESS 3
   //#define E1_SLAVE_ADDRESS 0
   //#define E2_SLAVE_ADDRESS 0
   //#define E3_SLAVE_ADDRESS 0
@@ -3300,11 +3330,11 @@
    * { <off_time[1..15]>, <hysteresis_end[-3..12]>, hysteresis_start[1..8] }
    */
   #define CHOPPER_TIMING CHOPPER_PRUSAMK3_24V        // All axes (override below)
-  //#define CHOPPER_TIMING_X  CHOPPER_TIMING        // For X Axes (override below)
+  #define CHOPPER_TIMING_X  CHOPPER_09STEP_24V        // For X Axes (override below)
   //#define CHOPPER_TIMING_X2 CHOPPER_TIMING_X
-  //#define CHOPPER_TIMING_Y  CHOPPER_TIMING        // For Y Axes (override below)
+  #define CHOPPER_TIMING_Y  CHOPPER_09STEP_24V        // For Y Axes (override below)
   //#define CHOPPER_TIMING_Y2 CHOPPER_TIMING_Y
-  //#define CHOPPER_TIMING_Z  CHOPPER_TIMING        // For Z Axes (override below)
+  #define CHOPPER_TIMING_Z  CHOPPER_PRUSAMK3_24V        // For Z Axes (override below)
   //#define CHOPPER_TIMING_Z2 CHOPPER_TIMING_Z
   //#define CHOPPER_TIMING_Z3 CHOPPER_TIMING_Z
   //#define CHOPPER_TIMING_Z4 CHOPPER_TIMING_Z
@@ -3314,7 +3344,7 @@
   //#define CHOPPER_TIMING_U  CHOPPER_TIMING        // For U Axis
   //#define CHOPPER_TIMING_V  CHOPPER_TIMING        // For V Axis
   //#define CHOPPER_TIMING_W  CHOPPER_TIMING        // For W Axis
-  //#define CHOPPER_TIMING_E  CHOPPER_TIMING        // For Extruders (override below)
+  #define CHOPPER_TIMING_E  CHOPPER_PRUSAMK3_24V        // For Extruders (override below)
   //#define CHOPPER_TIMING_E1 CHOPPER_TIMING_E
   //#define CHOPPER_TIMING_E2 CHOPPER_TIMING_E
   //#define CHOPPER_TIMING_E3 CHOPPER_TIMING_E
@@ -3336,7 +3366,7 @@
    * M912 - Clear stepper driver overtemperature pre-warn condition flag.
    * M122 - Report driver parameters (Requires TMC_DEBUG)
    */
-  //#define MONITOR_DRIVER_STATUS
+  #define MONITOR_DRIVER_STATUS
 
   #if ENABLED(MONITOR_DRIVER_STATUS)
     #define CURRENT_STEP_DOWN     50  // [mA]
@@ -3449,7 +3479,7 @@
    * Enable M122 debugging command for TMC stepper drivers.
    * M122 S0/1 will enable continuous reporting.
    */
-  //#define TMC_DEBUG
+  #define TMC_DEBUG
 
   /**
    * You can set your own advanced settings by filling in predefined functions.

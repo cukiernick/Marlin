@@ -88,9 +88,10 @@
 #define E0_STEP_PIN                         PD6
 #define E0_DIR_PIN                          PD3
 
-#define E1_ENABLE_PIN                       PA3
-#define E1_STEP_PIN                         PA6
-#define E1_DIR_PIN                          PA1
+// Reuse pins for TMC serial
+// #define E1_ENABLE_PIN                       PA3
+// #define E1_STEP_PIN                         PA6
+// #define E1_DIR_PIN                          PA1
 
 //
 // Temperature Sensors
